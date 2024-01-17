@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Data Table</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+    />
+    <style>
+      body {
+        background-image: url("bg.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+      }
+
+      * {
+        font-family: "VT323", monospace;
+      }
+
+      .glass {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0)
+        );
+        backdrop-filter: blur(lepx);
+        -webkit-backdrop-filter: blur(lOpx);
+        border-radius: 20px;
+        border: lpx solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.375);
+      }
+
+      #userDataBody {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+    </style>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+    </style>
+  </head>
+
+  <body class="font-sans bg-gray-100">
+    <div class="flex items-center justify-center h-screen bg-opacity-50">
+      <div class="rounded-md glass py-3 px-6 max-w-7xl w-full space-y-6">
+        <h1
+          class="text-center text-6xl font-semibold mb-4"
+          style="
+            background: linear-gradient(
+              45deg,
+              violet,
+              indigo,
+              blue,
+              green,
+              yellow,
+              orange,
+              red
+            );
+            -webkit-background-clip: text;
+            color: transparent;
+          "
+        >
+          User Table
+        </h1>
+
+        <div class="flex items-center justify-center space-x-4">
+          <label class="block text-xl" for="departmentFilter"
+            >Filter by Department:</label
+          >
+          <select
+            id="departmentFilter"
+            class="w-40 h-14 text-xl border px-2 rounded focus:outline-none focus:border-blue-500"
+          >
+            <option class="text-xl" value="all">All Departments</option>
+            <option class="text-xl" value="DCS">DCS</option>
+            <option class="text-xl" value="DTE">DTE</option>
+            <option class="text-xl" value="DMS">DMS</option>
+            <option class="text-xl" value="DAS">DAS</option>
+            <option class="text-xl" value="DIT">DIT</option>
+          </select>
+
+          <label class="block text-xl" for="usernameSearch"
+            >Search Username:</label
+          >
+          <input
+            type="text"
+            id="usernameSearch"
+            class="w-32 text-center text-xl px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
+          />
+
+          <button
+            type="button"
+            onclick="window.location.href = './index.html'"
+            class="block text-xl bg-blue-800 text-white text-center px-4 py-2 rounded cursor-pointer focus:outline-none no-underline"
+          >
+            Back to Home
+          </button>
+        </div>
+
+        <table
+          class="w-full h-full text-2xl bg-white text-center border-collapse border"
+        >
+          <thead>
+            <tr>
+              <th
+                class="border font-light bg-black text-white border-white p-1"
+              >
+                Username
+              </th>
+              <th
+                class="border font-light bg-black text-white border-white p-1"
+              >
+                Original Password
+              </th>
+              <th
+                class="border font-light bg-black text-white border-white p-1"
+              >
+                Encrypted Password
+              </th>
+              <th
+                class="border font-light bg-black text-white border-white p-1"
+              >
+                Department
+              </th>
+              <th
+                class="border font-light bg-black text-white border-white p-1"
+              >
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody class="border border-black p-1" id="userDataBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        getDocs,
+        doc,
+        deleteDoc,
+      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyA3nji1N0Frmou_SlkN_okjvdN35MlkcqA",
+        authDomain: "password-matrix-s.firebaseapp.com",
+        projectId: "password-matrix-s",
+        storageBucket: "password-matrix-s.appspot.com",
+        messagingSenderId: "288859511104",
+        appId: "1:288859511104:web:636111349346e9abcf82a5",
+        measurementId: "G-Q6XDNJYWY0",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const firestore = getFirestore(app);
+
+      // Debounce function for input events
+      const debounce = (func, delay) => {
+        let timeoutId;
+        return (...args) => {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          timeoutId = setTimeout(() => {
+            func(...args);
+          }, delay);
+        };
+      };
+
+      async function getData(departmentFilter, usernameSearch) {
+        const userDataBody = document.getElementById("userDataBody");
+
+        userDataBody.style.overflowY = "auto";
+        userDataBody.innerHTML = "";
+
+        try {
+          const querySnapshot = await getDocs(
+            collection(firestore, "passwords")
+          );
+
+          querySnapshot.forEach((documentSnapshot) => {
+            const data = documentSnapshot.data();
+            if (
+              (departmentFilter === "all" ||
+                data.department === departmentFilter) &&
+              (usernameSearch === "" ||
+                data.username.toLowerCase().includes(usernameSearch))
+            ) {
+              const row = userDataBody.insertRow();
+              row.dataset.documentId = documentSnapshot.id;
+
+              const usernameCell = row.insertCell();
+              usernameCell.innerText = data.username;
+              usernameCell.classList.add("border", "border-black", "p-2");
+
+              const originalPasswordCell = row.insertCell();
+              originalPasswordCell.innerText = data.originalPassword;
+              originalPasswordCell.classList.add(
+                "border",
+                "border-black",
+                "p-2"
+              );
+
+              const encryptedPasswordCell = row.insertCell();
+              encryptedPasswordCell.innerText = data.encryptedPassword;
+              encryptedPasswordCell.classList.add(
+                "border",
+                "border-black",
+                "p-2"
+              );
+
+              const departmentCell = row.insertCell();
+              departmentCell.innerText = data.department;
+              departmentCell.classList.add("border", "border-black", "p-2");
+
+              const actionCell = row.insertCell();
+              const deleteButton = document.createElement("button");
+              deleteButton.textContent = "Delete";
+              deleteButton.classList.add(
+                "bg-red-500",
+                "text-white",
+                "px-4",
+                "py-2",
+                "rounded",
+                "cursor-pointer",
+                "focus:outline-none",
+                "delete-button"
+              );
+              deleteButton.addEventListener("click", () => {
+                deleteUser(data.username, documentSnapshot);
+              });
+              actionCell.appendChild(deleteButton);
+              actionCell.classList.add("border", "border-black", "p-2");
+            }
+          });
+
+          if (userDataBody.innerHTML === "") {
+            const noDataMessageRow = userDataBody.insertRow();
+            const noDataMessageCell = noDataMessageRow.insertCell();
+            noDataMessageCell.colSpan = 5;
+            noDataMessageCell.innerText = "No matching data found.";
+          }
+        } catch (error) {
+          console.error("Error getting user data:", error);
+        }
+      }
+
+      function applyFilters() {
+        const departmentFilter =
+          document.getElementById("departmentFilter").value;
+        const usernameSearch = document
+          .getElementById("usernameSearch")
+          .value.toLowerCase();
+
+        getData(departmentFilter, usernameSearch);
+      }
+
+      async function deleteUser(username, documentSnapshot) {
+        const confirmation = window.confirm(
+          `Are you sure you want to delete ${username} forever from the database? \nPS. ${username} will never going back  😥`
+        );
+
+        if (confirmation) {
+          try {
+            await deleteDoc(doc(firestore, "passwords", documentSnapshot.id));
+            console.log("Document successfully deleted!");
+            getData("all", "");
+            alert("Row deleted");
+          } catch (deleteError) {
+            console.error("Error deleting document: ", deleteError);
+          }
+        }
+      }
+
+      getData("all", "");
+
+      document
+        .getElementById("departmentFilter")
+        .addEventListener("change", applyFilters);
+      document
+        .getElementById("usernameSearch")
+        .addEventListener("input", debounce(applyFilters, 300));
+    </script>
+  </body>
+</html>

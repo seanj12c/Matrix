@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Password Matrix</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+    />
+    <style>
+      body {
+        background-image: url("bg.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+      * {
+        font-family: "VT323", monospace;
+      }
+
+      .glass {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0)
+        );
+        backdrop-filter: blur(lepx);
+        -webkit-backdrop-filter: blur(lOpx);
+        border-radius: 20px;
+        border: lpx solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.375);
+      }
+    </style>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+    </style>
+  </head>
+  <body class="font-sans bg-gray-100">
+    <div class="flex items-center justify-center h-screen bg-opacity-50">
+      <div class="rounded-md glass p-6 max-w-md w-full space-y-6">
+        <h1
+          class="text-center text-6xl font-semibold mb-6"
+          style="
+            background: linear-gradient(
+              45deg,
+              violet,
+              indigo,
+              blue,
+              green,
+              yellow,
+              orange,
+              red
+            );
+            -webkit-background-clip: text;
+            color: transparent;
+          "
+        >
+          Password Matrix
+        </h1>
+
+        <form id="passwordForm" class="text-center">
+          <label class="block text-3xl font-normal mb-2" for="username"
+            >Username:</label
+          >
+          <input
+            type="text"
+            id="username"
+            name="username"
+            required
+            class="w-full text-center text-2xl px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
+          />
+          <br />
+          <label class="block text-3xl font-normal px-3 mb-2" for="department"
+            >Department:</label
+          >
+          <select
+            id="department"
+            name="department"
+            required
+            class="w-full border text-2xl px-2 py-2 rounded focus:outline-none focus:border-blue-500"
+          >
+            <option class="w-full text-2xl" value="DCS">DCS</option>
+            <option class="w-full text-2xl" value="DTE">DTE</option>
+            <option class="w-full text-2xl" value="DMS">DMS</option>
+            <option class="w-full text-2xl" value="DAS">DAS</option>
+            <option class="w-full text-2xl" value="DIT">DIT</option>
+          </select>
+          <br />
+          <label class="block text-3xl font-normal mb-2" for="originalPassword"
+            >Password:</label
+          >
+          <div class="relative">
+            <input
+              type="password"
+              id="originalPassword"
+              name="originalPassword"
+              required
+              class="w-full text-2xl text-center px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
+            />
+            <button
+              type="button"
+              onclick="togglePasswordVisibility()"
+              class="absolute inset-y-0 right-0 px-3 py-2 cursor-pointer focus:outline-none"
+            >
+              <i class="far fa-eye"></i>
+            </button>
+          </div>
+
+          <br />
+          <button
+            type="button"
+            onclick="submitForm()"
+            class="bg-blue-800 text-2xl text-center mt-2 text-white px-4 py-2 rounded cursor-pointer focus:outline-none"
+          >
+            Submit
+          </button>
+        </form>
+        <div class="flex justify-center">
+          <button
+            type="button"
+            onclick="window.location.href = './table.html'"
+            class="block text-blue-800 mt-[-20px] text-2xl bg-white text-center px-4 py-2 rounded cursor-pointer focus:outline-none no-underline"
+          >
+            Show Table
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./firebase.js"></script>
+    <script type="module" src="./script.js"></script>
+    <script type="module">
+      import { submitForm } from "./script.js";
+
+      window.submitForm = submitForm;
+    </script>
+    <script
+      src="https://kit.fontawesome.com/df93e80e36.js"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      function togglePasswordVisibility() {
+        const passwordInput = document.getElementById("originalPassword");
+        const passwordVisibilityButton = document.querySelector(
+          "#originalPassword + button"
+        );
+
+        if (passwordInput.type === "password") {
+          passwordInput.type = "text";
+          passwordVisibilityButton.innerHTML =
+            '<i class="far fa-eye-slash"></i>';
+        } else {
+          passwordInput.type = "password";
+          passwordVisibilityButton.innerHTML = '<i class="far fa-eye"></i>';
+        }
+      }
+    </script>
+  </body>
+</html>
