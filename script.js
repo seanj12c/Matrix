@@ -4,26 +4,38 @@ import {
   addDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-function submitForm() {
+async function submitForm() {
   const username = document.getElementById("username").value;
   const department = document.getElementById("department").value;
   const originalPassword = document.getElementById("originalPassword").value;
   const encryptedPassword = btoa(originalPassword);
 
   const passwordsCollection = collection(firestore, "passwords");
-  addDoc(passwordsCollection, {
-    username,
-    department,
-    originalPassword,
-    encryptedPassword,
-  })
-    .then(() => {
-      alert("Password information stored in Firestore!");
-      document.getElementById("passwordForm").reset();
-    })
-    .catch((error) => {
-      console.error("Error storing data in Firestore:", error);
+
+  try {
+    const querySnapshot = await getDocs(
+      query(passwordsCollection, where("username", "==", username))
+    );
+
+    if (!querySnapshot.empty) {
+      alert(
+        "Error: Username already exists. Please choose a different username."
+      );
+      return;
+    }
+
+    await addDoc(passwordsCollection, {
+      username,
+      department,
+      originalPassword,
+      encryptedPassword,
     });
+
+    alert("Password information stored in Firestore!");
+    document.getElementById("passwordForm").reset();
+  } catch (error) {
+    console.error("Error storing data in Firestore:", error);
+  }
 }
 
 const passwordForm = document.getElementById("passwordForm");
